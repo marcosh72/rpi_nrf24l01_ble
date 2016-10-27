@@ -12,7 +12,6 @@ Radio::Radio(void){
 
 uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   uint_fast8_t i;
-  uint8_t rx[len];
 
   SPI::WriteRead(payload, nullptr, len);
 

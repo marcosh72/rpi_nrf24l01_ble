@@ -1,11 +1,18 @@
 #include <iostream>
+#include <unistd.h>
+#include "bbble.h"
 #include "radio.h"
+#include "spi.h"
 
 using namespace std;
 
 int main(void){
-  uint8_t tx[50] = "dsajdlkajdalskdjalsdjasd";
-
+  SPI spi(4000000, SPI_MODE_0);
   Radio radio;
-  radio.Transmit(tx, 10);
+  BBBLE bbble("ola mundo!");
+
+  while(1){
+    bbble.Transmit();
+    usleep(1000);
+  }
 }
