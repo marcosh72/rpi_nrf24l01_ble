@@ -8,9 +8,10 @@ using namespace std;
 BBBLE::BBBLE(const char *message){
   PopulateHeader();
   PopulatePayload((uint8_t *)&message[0]);
-  ReverseByteAndBit();
+  ReverseByteAndBit(WITHOUT_CRC);
   CRC24();
   Whiten();
+  ReverseByteAndBit(WITH_CRC);
 }
 
 uint_fast8_t BBBLE::PopulateHeader(void){
@@ -50,13 +51,17 @@ uint_fast8_t BBBLE::PopulatePayload(uint8_t *payload){
   return 0;
 }
 
-uint_fast8_t BBBLE::ReverseByteAndBit(void){
+uint_fast8_t BBBLE::ReverseByteAndBit(uint8_t CRC){
   uint8_t *pkt_ptr = (uint8_t *)&packet[0];
   uint8_t *pkt_ptr_end = (uint8_t *)&packet[packet_len + 1];
   uint_fast8_t i;
-  uint8_t aux = 0, rev = 0;
+  uint8_t aux = 0, rev = 0, len = packet_len;
 
-  for(i = 0; i < (packet_len + 2); i++){ // header + length + packet
+  if(CRC == 1) {
+    len += 3;
+  }
+
+  for(i = 0; i < (len + 2); i++){ // header + length + packet
     aux = *pkt_ptr;
     rev |= (aux >> 7) & 0x01;
     rev |= (aux >> 5) & 0x02;
@@ -74,7 +79,7 @@ uint_fast8_t BBBLE::ReverseByteAndBit(void){
   }
 
   pkt_ptr = (uint8_t *)&packet[2]; // payload beginning
-  for(i = 0; i < (packet_len >> 1); i++){
+  for(i = 0; i < (len >> 1); i++){
     aux = *pkt_ptr;
     *pkt_ptr = *pkt_ptr_end;
     *pkt_ptr_end = aux;
@@ -86,7 +91,7 @@ uint_fast8_t BBBLE::ReverseByteAndBit(void){
   pkt_ptr = (uint8_t *)&packet[0];
   cout << "Reversed TX:\t";
   cout << showbase << internal << setfill('0');
-  for(i = 0; i < (packet_len + 2); i++){
+  for(i = 0; i < (len + 2); i++){
     cout << hex << setw(4) << (int)*pkt_ptr++ << " ";
   }
   cout << endl;
@@ -140,7 +145,7 @@ uint_fast8_t BBBLE::Whiten(void){
   uint_fast8_t i;
   uint8_t *pkt_ptr = (uint8_t *)&packet[0];
   uint8_t *data = pkt_ptr;
-  uint8_t len = packet_len;
+  uint8_t len = packet_len + 3;
   uint8_t channel = Radio::rf_channel;
   uint8_t whiten_coeff = 0;
 
