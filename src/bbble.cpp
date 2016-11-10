@@ -8,6 +8,7 @@ BBBLE::BBBLE(const char *message){
   PopulateHeader();
   PopulatePayload((uint8_t *)&message[0]);
   ReverseByteAndBit();
+  CRC24();
 }
 
 uint_fast8_t BBBLE::PopulateHeader(void){
@@ -89,6 +90,50 @@ uint_fast8_t BBBLE::ReverseByteAndBit(void){
   cout << endl;
 
   return 0;
+}
+
+uint_fast8_t BBBLE::CRC24(void){
+  uint8_t v, t, d;
+  uint8_t *data = &packet[0];
+  uint8_t len = packet_len;
+  uint8_t *dst = data + packet_len;
+  uint_fast8_t i;
+
+  for(i = 0; i < 3; i++){
+    dst[i] = 0x55;
+  }
+
+  while(len--){
+  
+    d = *data++;
+    for(v = 0; v < 8; v++, d >>= 1){
+    
+      t = dst[0] >> 7;
+      
+      dst[0] <<= 1;
+      if(dst[1] & 0x80) dst[0] |= 1;
+      dst[1] <<= 1;
+      if(dst[2] & 0x80) dst[1] |= 1;
+      dst[2] <<= 1;
+      
+    
+      if(t != (d & 1)){
+      
+        dst[2] ^= 0x5B;
+        dst[1] ^= 0x06;
+      }
+    } 
+  }
+
+  cout << "CRC:\t\t";
+  cout << showbase << internal << setfill('0');
+  for(i = 0; i < 3; i++){
+    cout << hex << setw(4) << (int)*dst++ << " ";
+  }
+  cout << endl;
+
+  return 0;
+
 }
 
 uint_fast8_t BBBLE::Transmit(void){
