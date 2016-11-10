@@ -5,6 +5,8 @@
 
 using namespace std;
 
+uint_fast8_t Radio::rf_channel;
+
 Radio::Radio(void){
   rf_channel = 38; // can be 37, 38 or 39
   cout << "Radio initialized on channel " << (int)rf_channel << "." << endl << endl;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "bbble.h"
+#include "radio.h"
 
 using namespace std;
 
@@ -9,6 +10,7 @@ BBBLE::BBBLE(const char *message){
   PopulatePayload((uint8_t *)&message[0]);
   ReverseByteAndBit();
   CRC24();
+  Whiten();
 }
 
 uint_fast8_t BBBLE::PopulateHeader(void){
@@ -94,9 +96,9 @@ uint_fast8_t BBBLE::ReverseByteAndBit(void){
 
 uint_fast8_t BBBLE::CRC24(void){
   uint8_t v, t, d;
-  uint8_t *data = &packet[0];
+  uint8_t *pkt_ptr = (uint8_t *)&packet[0];
   uint8_t len = packet_len;
-  uint8_t *dst = data + packet_len;
+  uint8_t *dst = pkt_ptr + packet_len + 2;
   uint_fast8_t i;
 
   for(i = 0; i < 3; i++){
@@ -105,9 +107,9 @@ uint_fast8_t BBBLE::CRC24(void){
 
   while(len--){
   
-    d = *data++;
+    d = *pkt_ptr++;
+
     for(v = 0; v < 8; v++, d >>= 1){
-    
       t = dst[0] >> 7;
       
       dst[0] <<= 1;
@@ -115,10 +117,8 @@ uint_fast8_t BBBLE::CRC24(void){
       dst[1] <<= 1;
       if(dst[2] & 0x80) dst[1] |= 1;
       dst[2] <<= 1;
-      
     
       if(t != (d & 1)){
-      
         dst[2] ^= 0x5B;
         dst[1] ^= 0x06;
       }
@@ -133,7 +133,50 @@ uint_fast8_t BBBLE::CRC24(void){
   cout << endl;
 
   return 0;
+}
 
+uint_fast8_t BBBLE::Whiten(void){
+  uint8_t  m;
+  uint_fast8_t i;
+  uint8_t *pkt_ptr = (uint8_t *)&packet[0];
+  uint8_t *data = pkt_ptr;
+  uint8_t len = packet_len;
+  uint8_t channel = Radio::rf_channel;
+  uint8_t whiten_coeff = 0;
+
+  whiten_coeff |= (channel >> 7) & 0x01;
+  whiten_coeff |= (channel >> 5) & 0x02;
+  whiten_coeff |= (channel >> 3) & 0x04;
+  whiten_coeff |= (channel >> 1) & 0x08;
+  whiten_coeff |= (channel << 1) & 0x10;
+  whiten_coeff |= (channel << 3) & 0x20;
+  whiten_coeff |= (channel << 5) & 0x40;
+  whiten_coeff |= (channel << 7) & 0x80;
+
+  whiten_coeff |= 2;
+
+  while(len--){
+  
+    for(m = 1; m; m <<= 1){
+    
+      if(whiten_coeff & 0x80){
+        
+        whiten_coeff ^= 0x11;
+        (*data) ^= m;
+      }
+      whiten_coeff <<= 1;
+    }
+    data++;
+  }
+
+  cout << "Whitened TX:\t";
+  cout << showbase << internal << setfill('0');
+  for(i = 0; i < (packet_len + 5); i++){
+    cout << hex << setw(4) << (int)*pkt_ptr++ << " ";
+  }
+  cout << endl;
+
+  return 0;
 }
 
 uint_fast8_t BBBLE::Transmit(void){
