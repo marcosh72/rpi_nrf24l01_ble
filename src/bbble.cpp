@@ -1,18 +1,24 @@
 #include <iostream>
 #include <iomanip>
 #include "bbble.h"
-#include "radio.h"
 
 using namespace std;
 
-BBBLE::BBBLE(const char *message){
+BBBLE::BBBLE(Radio *radiodev){
+  radio = radiodev;
+}
+
+uint_fast8_t BBBLE::ChangeMessage(const char *message){
   PopulateHeader();
   PopulatePayload((uint8_t *)&message[0]);
   ReverseByteAndBit(WITHOUT_CRC);
   CRC24();
   Whiten();
   ReverseByteAndBit(WITH_CRC);
+
+  return 0;
 }
+
 
 uint_fast8_t BBBLE::PopulateHeader(void){
   packet[0] = 0x40;
@@ -111,23 +117,23 @@ uint_fast8_t BBBLE::CRC24(void){
   }
 
   while(len--){
-  
+
     d = *pkt_ptr++;
 
     for(v = 0; v < 8; v++, d >>= 1){
       t = dst[0] >> 7;
-      
+
       dst[0] <<= 1;
       if(dst[1] & 0x80) dst[0] |= 1;
       dst[1] <<= 1;
       if(dst[2] & 0x80) dst[1] |= 1;
       dst[2] <<= 1;
-    
+
       if(t != (d & 1)){
         dst[2] ^= 0x5B;
         dst[1] ^= 0x06;
       }
-    } 
+    }
   }
 
   cout << "CRC:\t\t";
@@ -146,7 +152,7 @@ uint_fast8_t BBBLE::Whiten(void){
   uint8_t *pkt_ptr = (uint8_t *)&packet[0];
   uint8_t *data = pkt_ptr;
   uint8_t len = packet_len + 3;
-  uint8_t channel = Radio::rf_channel;
+  uint8_t channel = radio->GetRFChannel();
   uint8_t whiten_coeff = 0;
 
   whiten_coeff |= (channel >> 7) & 0x01;
@@ -161,11 +167,11 @@ uint_fast8_t BBBLE::Whiten(void){
   whiten_coeff |= 2;
 
   while(len--){
-  
+
     for(m = 1; m; m <<= 1){
-    
+
       if(whiten_coeff & 0x80){
-        
+
         whiten_coeff ^= 0x11;
         (*data) ^= m;
       }
@@ -185,5 +191,7 @@ uint_fast8_t BBBLE::Whiten(void){
 }
 
 uint_fast8_t BBBLE::Transmit(void){
+  //Radio::Transmit(packet, packet_len);
+  radio->Transmit(packet, packet_len + 5); // header(1) + length (1) + pack(len) + crc(3)
   return 0;
 }

@@ -8,11 +8,13 @@ using namespace std;
 
 int main(void){
   SPI spi(4000000, SPI_MODE_0);
-  Radio radio;
-  BBBLE bbble("ola mundo!");
+  Radio radio(&spi);
+  BBBLE bbble(&radio);
+
+  bbble.ChangeMessage("hi there!");
 
   while(1){
     bbble.Transmit();
-    usleep(1000);
+    usleep(1000000);
   }
 }

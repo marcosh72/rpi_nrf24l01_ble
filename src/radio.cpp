@@ -5,17 +5,14 @@
 
 using namespace std;
 
-uint_fast8_t Radio::rf_channel;
-
-Radio::Radio(void){
+Radio::Radio(SPI *spidev){
   rf_channel = 38; // can be 37, 38 or 39
+  spi = spidev;
   cout << "Radio initialized on channel " << (int)rf_channel << "." << endl << endl;
 }
 
 uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   uint_fast8_t i;
-
-  SPI::WriteRead(payload, nullptr, len);
 
   cout << "Radio TX:\t";
   cout << showbase << internal << setfill('0');
@@ -24,5 +21,13 @@ uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   }
   cout << endl;
 
+  payload -= len;
+
+  spi->WriteRead(payload, nullptr, len);
+
   return 0;
+}
+
+uint_fast8_t Radio::GetRFChannel(void){
+  return rf_channel;
 }
