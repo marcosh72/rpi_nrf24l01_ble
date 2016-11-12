@@ -3,6 +3,8 @@
 
 #include "spi.h"
 
+#define RADIO_MAX_PAYLOAD           32
+
 class Radio{
 private:
   SPI *spi;
