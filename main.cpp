@@ -12,9 +12,12 @@ int main(void){
   BBBLE bbble(&radio);
 
   bbble.ChangeMessage("hi there!");
+  bbble.Transmit();
 
-  while(1){
-    bbble.Transmit();
-    usleep(1000000);
-  }
+  //while(1){
+    //bbble.Transmit();
+    //usleep(1000000);
+  //}
+
+  return 0;
 }
