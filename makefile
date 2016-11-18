@@ -1,21 +1,23 @@
 TARGET=bbble
 
-PREFIX=
+PREFIX=arm-linux-gnueabihf-
 CC=$(PREFIX)g++
 
 INC=./inc
 SRC=./src
+LIB=./lib
 
-CFLAGS=-O2 -pipe -Wall
+CFLAGS=-O2 -pipe -Wall -I$(INC)
+LDFLAGS=-L$(LIB) -lbcm2835
 
 SOURCES=$(shell find . -name '*.cpp')
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
 
 %.o: %.cpp
-	$(CC) -c -o $@ $< $(CFLAGS) -I$(INC)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(OBJECTS)
-	$(CC) -o $(TARGET).x $(OBJECTS) -I$(INC)
+	$(CC) $(CFLAGS) -o $(TARGET).x $(OBJECTS) $(LDFLAGS)
 
 clean:
 	find . -name '*.o' -delete
