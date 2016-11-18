@@ -33,7 +33,6 @@ struct __attribute__ ((__packed__)) bbble_advertising_packet_s {
   struct bbble_advertising_pdu_payload_s pkt_pdu;
 };
 
-
 struct __attribute__ ((__packed__)) pcap_hdr_s {
   uint32_t magic_number;   /* magic number */
   uint16_t version_major;  /* major version number */

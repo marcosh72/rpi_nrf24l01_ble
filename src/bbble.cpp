@@ -13,10 +13,8 @@ BBBLE::BBBLE(Radio *radiodev){
 uint_fast8_t BBBLE::ChangeMessage(const char *message){
   PopulatePayload((uint8_t *)&message[0]);
   PopulateHeader();
-  //ReverseByteAndBit((uint8_t *)packet.pkt_pdu, total_len - 4 - 3); // only data and 
   CRC24();
   //Whiten();
-  //ReverseByteAndBit(WITH_CRC);
 
   return 0;
 }
@@ -29,7 +27,7 @@ uint_fast8_t BBBLE::PopulateHeader(void){
   packet.pkt_header.access_address[3] = 0x8e;
 
   packet.pkt_pdu.pdu_header.pdu_type = PDU_TYPE_ADV_NONCONN_IND;
-  packet.pkt_pdu.pdu_header.length = total_len - 6; // no access_address and no header
+  packet.pkt_pdu.pdu_header.length = total_len - 9; // no access_address, no header and no CRC
 
   packet.pkt_pdu.adv_addr[0] = 0x01;
   packet.pkt_pdu.adv_addr[1] = 0x23;
@@ -80,7 +78,7 @@ uint_fast8_t BBBLE::PopulatePayload(uint8_t *payload){
 
 uint_fast8_t BBBLE::ReverseByteAndBit(uint8_t *addr, uint_fast8_t len){
   uint8_t *pkt_ptr = (uint8_t *)addr;
-  uint8_t *pkt_ptr_end = pkt_ptr + len;
+  uint8_t *pkt_ptr_end = pkt_ptr + len - 1;
   uint_fast8_t i;
   uint8_t aux = 0, rev = 0;
 
@@ -116,8 +114,8 @@ uint_fast8_t BBBLE::ReverseByteAndBit(uint8_t *addr, uint_fast8_t len){
 
 uint_fast8_t BBBLE::CRC24(void){
   uint8_t v, t, d;
-  uint8_t *pkt_ptr = (uint8_t *)&packet.pkt_pdu.adv_message[0];
-  uint8_t len = packet_len;
+  uint8_t *pkt_ptr = (uint8_t *)&packet.pkt_pdu;
+  uint8_t len = packet_len + 5 + 6 + 2; // adv_addr + pre data + pdu_header
   uint8_t *dst = &packet.pkt_pdu.adv_message[packet_len];
   uint_fast8_t i;
 
@@ -145,6 +143,11 @@ uint_fast8_t BBBLE::CRC24(void){
     }
   }
 
+  // specs page 2216
+  for(int i = 0; i < 3; i++){
+    ReverseByteAndBit(&dst[i], 1);
+  }
+
   cout << "CRC:\t\t";
   cout << showbase << internal << setfill('0');
   for(i = 0; i < 3; i++){
@@ -159,7 +162,7 @@ uint_fast8_t BBBLE::Whiten(void){
   uint8_t  m;
   uint8_t *pkt_ptr = (uint8_t *)&packet.pkt_pdu;
   uint8_t *data = pkt_ptr;
-  uint8_t len = packet.pkt_pdu.pdu_header.length;
+  uint8_t len = total_len - 4; // no access_address
   uint8_t channel = radio->GetRFChannel();
   uint8_t whiten_coeff = 0;
 
