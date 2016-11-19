@@ -7,8 +7,8 @@ INC=./inc
 SRC=./src
 LIB=./lib
 
-CFLAGS=-O2 -pipe -Wall -I$(INC)
-LDFLAGS=-L$(LIB) -lbcm2835
+CFLAGS=-O2 -pipe -Wall -std=gnu++11 -I$(INC)
+LDFLAGS=-L$(LIB) -lbcm2835 
 
 SOURCES=$(shell find . -name '*.cpp')
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
