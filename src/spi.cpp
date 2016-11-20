@@ -5,7 +5,10 @@
 using namespace std;
 
 SPI::SPI(uint32_t clk_frequency, uint_fast8_t mode){
-  clock_frequency = clk_frequency;
+  uint_fast16_t clock_divider;
+  clock_divider = (uint_fast16_t)((250000000 / clk_frequency) & ~0x01) + 2;
+  clock_frequency = (uint32_t)(250000000 / clock_divider);
+
   switch(mode){
     case SPI_MODE_0:
       clock_polarity = 0;
@@ -32,6 +35,7 @@ SPI::SPI(uint32_t clk_frequency, uint_fast8_t mode){
   cout << "SPI configured as master:" << endl;
   cout << "\tCPHA = " << clock_phase << endl;
   cout << "\tCPOL = " << clock_polarity << endl;
+  cout << "\tClk Div = " << clock_divider << endl;
   cout << "\tSpeed = " << clock_frequency << "Hz" << endl << endl;
 
   if(!bcm2835_init()){
@@ -42,7 +46,7 @@ SPI::SPI(uint32_t clk_frequency, uint_fast8_t mode){
     } else{
       bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
       bcm2835_spi_setDataMode(mode);
-      bcm2835_spi_setClockDivider((int)(250000000 / clk_frequency) & ~0x01); // nearest even number
+      bcm2835_spi_setClockDivider(clock_divider); // nearest even number
       bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
       bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
     }
@@ -61,13 +65,11 @@ uint_fast8_t SPI::WriteRead(uint8_t *tx_data, uint8_t *rx_data, uint_fast8_t len
   cout << "SPI TX:\t\t";
   cout << showbase << internal << setfill('0');
   for(i = 0; i < len; i++){
-    cout << hex << setw(4) << (int)*tx_data++ << " ";
-    //*rx_data++ = i;
+    cout << hex << setw(4) << (int)tx_data[i] << " ";
   }
   cout << endl;
 
-  tx_data -= len;
-  bcm2835_spi_transfernb((char *)&tx_data, (char *)&rx_data, len);
+  bcm2835_spi_transfernb((char *)&tx_data[0], (char *)&rx_data[0], len);
 
   return 0;
 }
