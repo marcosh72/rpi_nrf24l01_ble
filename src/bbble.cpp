@@ -14,7 +14,7 @@ uint_fast8_t BBBLE::ChangeMessage(const char *message){
   PopulatePayload((uint8_t *)&message[0]);
   PopulateHeader();
   CRC24();
-  //Whiten();
+  Whiten();
 
   return 0;
 }

@@ -9,6 +9,7 @@ class Radio{
 private:
   SPI *spi;
   uint_fast8_t rf_channel;
+  uint8_t SwapBits(uint8_t b);
 public:
   Radio(SPI *spidev);
   uint_fast8_t Transmit(uint8_t *payload, uint_fast8_t len);

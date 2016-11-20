@@ -69,7 +69,7 @@ uint_fast8_t SPI::WriteRead(uint8_t *tx_data, uint8_t *rx_data, uint_fast8_t len
   }
   cout << endl;
 
-  bcm2835_spi_transfernb((char *)&tx_data[0], (char *)&rx_data[0], len);
+  bcm2835_spi_writenb((char *)&tx_data[0], len);
 
   return 0;
 }
