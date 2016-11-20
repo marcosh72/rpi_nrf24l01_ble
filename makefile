@@ -7,7 +7,7 @@ INC=./inc
 SRC=./src
 LIB=./lib
 
-CFLAGS=-O2 -pipe -Wall -I$(INC) -march=armv6zk
+CFLAGS=-O2 -pipe -Wall -march=armv6zk -std=gnu++11 -I$(INC)
 LDFLAGS=-L$(LIB) -lbcm2835
 
 SOURCES=$(shell find . -name '*.cpp')
