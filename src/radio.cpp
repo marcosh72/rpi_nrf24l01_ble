@@ -11,12 +11,13 @@ Radio::Radio(SPI *spidev){
   rf_channel = 38; // can be 37, 38 or 39
   spi = spidev;
 
-  const uint8_t configs[11][2] = {
+  const uint8_t configs[12][2] = {
     {0x20, 0x12},   // on, no crc, int on RX/TX done
     {0x21, 0x00},   // no autoACK
     {0x22, 0x00},   // no rx
     {0x23, 0x02},   // 5 bytes adderss
     {0x24, 0x00},   // no auto retransmit
+    {0x25, rf_channel}, // channel
     {0x26, 0x06},   // 1mbps at 0dbm
     {0x27, 0x3e},   // clear various flags
     {0x3c, 0x00},   // no dym payloads
@@ -38,7 +39,7 @@ Radio::Radio(SPI *spidev){
     SwapBits(0xd6)
   };
 
-  for(i = 0; i < 11; i++){
+  for(i = 0; i < 12; i++){
     spi->WriteRead((uint8_t *)&configs[i][0], nullptr, 2);
   }
   spi->WriteRead((uint8_t *)&addr_conf[0], nullptr, 5);
@@ -65,6 +66,7 @@ uint8_t Radio::SwapBits(uint8_t b){
 
 uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   uint_fast8_t i;
+  uint8_t buf[len + 1];
 
   cout << "Radio TX:\t";
   cout << showbase << internal << setfill('0');
@@ -73,7 +75,18 @@ uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   }
   cout << endl;
 
-  spi->WriteRead((uint8_t *)&payload[0], nullptr, len);
+  buf[0] = 0xa0; // W_TX_PAYLOAD
+  for(i = 0; i < len; i++){
+    buf[i + 1] = payload[i];
+  }
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, len + 1);
+
+  buf[0] = 0x20;
+  buf[1] = 0x12;
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, 2); // tx on
+  bcm2835_gpio_set(RPI_GPIO_P1_15);
+  bcm2835_delay(10);
+  bcm2835_gpio_clr(RPI_GPIO_P1_15);
 
   return 0;
 }
