@@ -44,6 +44,8 @@ SPI::SPI(uint32_t clk_frequency, uint_fast8_t mode){
     if(!bcm2835_spi_begin()){
       cout << "BCM2835 spi init failed. Are you running as root?" << endl;
     } else{
+      bcm2835_gpio_fsel(RPI_GPIO_P1_15, BCM2835_GPIO_FSEL_OUTP);
+      bcm2835_gpio_write(RPI_GPIO_P1_15, LOW);
       bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
       bcm2835_spi_setDataMode(mode);
       bcm2835_spi_setClockDivider(clock_divider); // nearest even number
