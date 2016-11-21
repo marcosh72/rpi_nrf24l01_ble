@@ -8,7 +8,7 @@ using namespace std;
 Radio::Radio(SPI *spidev){
   uint_fast8_t i;
 
-  rf_channel = 38; // can be 37, 38 or 39
+  channel = 0; // can be 0, 1 or 2
   spi = spidev;
 
   const uint8_t configs[12][2] = {
@@ -17,7 +17,7 @@ Radio::Radio(SPI *spidev){
     {0x22, 0x00},   // no rx
     {0x23, 0x02},   // 5 bytes adderss
     {0x24, 0x00},   // no auto retransmit
-    {0x25, rf_channel}, // channel
+    {0x25, chRf[channel]}, // channel
     {0x26, 0x06},   // 1mbps at 0dbm
     {0x27, 0x3e},   // clear various flags
     {0x3c, 0x00},   // no dym payloads
@@ -45,7 +45,7 @@ Radio::Radio(SPI *spidev){
   spi->WriteRead((uint8_t *)&addr_conf[0], nullptr, 5);
   spi->WriteRead((uint8_t *)&addr_conf[5], nullptr, 5);
 
-  cout << "Radio initialized on channel " << (int)rf_channel << "." << endl << endl;
+  cout << "Radio initialized on channel " << (int)chLe[channel] << "." << endl << endl;
 }
 
 uint8_t Radio::SwapBits(uint8_t b){
@@ -85,12 +85,38 @@ uint_fast8_t Radio::Transmit(uint8_t *payload, uint_fast8_t len){
   buf[1] = 0x12;
   spi->WriteRead((uint8_t *)&buf[0], nullptr, 2); // tx on
   bcm2835_gpio_set(RPI_GPIO_P1_15);
-  bcm2835_delay(10);
+  bcm2835_delay(2);
   bcm2835_gpio_clr(RPI_GPIO_P1_15);
 
   return 0;
 }
 
+uint_fast8_t Radio::SetRFChannel(uint8_t channel_set) {
+  uint8_t buf[2];
+  channel = channel_set;
+
+  buf[0] = 0x25;
+  buf[1] = chRf[channel];
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, 2); // set channel
+
+  buf[0] = 0x27;
+  buf[1] = 0x6E;
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, 2); // clear flags
+
+  buf[0] = 0xE2;
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, 1); // clear RX FIFO
+
+  buf[0] = 0xE1;
+  spi->WriteRead((uint8_t *)&buf[0], nullptr, 1); // clear TX FIFO
+
+  return 0;
+
+}
+
 uint_fast8_t Radio::GetRFChannel(void){
-  return rf_channel;
+  return chRf[channel];
+}
+
+uint_fast8_t Radio::GetLEChannel(void){
+  return chLe[channel];
 }

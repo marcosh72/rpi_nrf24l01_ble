@@ -48,7 +48,7 @@ SPI::SPI(uint32_t clk_frequency, uint_fast8_t mode){
       bcm2835_gpio_write(RPI_GPIO_P1_15, LOW);
       bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
       bcm2835_spi_setDataMode(mode);
-      bcm2835_spi_setClockDivider(clock_divider); // nearest even number
+      bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_2048); // nearest even number
       bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
       bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
     }

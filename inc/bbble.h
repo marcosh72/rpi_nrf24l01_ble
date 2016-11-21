@@ -63,6 +63,7 @@ private:
   uint_fast8_t ReverseByteAndBit(uint8_t *addr, uint_fast8_t len);
   uint_fast8_t CRC24(void);
   uint_fast8_t Whiten(void);
+  uint8_t SwapBits(uint8_t b);
 public:
   BBBLE(Radio *radiodev);
   uint_fast8_t Transmit(void);
