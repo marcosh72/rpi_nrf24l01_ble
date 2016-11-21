@@ -17,7 +17,7 @@ uint_fast8_t BBBLE::ChangeMessage(const char *message){
   PopulateHeader();
   CRC24();
   Whiten();
-  for(i = 4; i < total_len; i++){
+  for(i = 0; i < total_len-4; i++){
     pkt_ptr[i] = SwapBits(pkt_ptr[i]);
   }
 

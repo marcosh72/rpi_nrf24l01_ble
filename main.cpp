@@ -19,7 +19,7 @@ int main(void){
   while(1){
     for(inst_channel = 0; inst_channel < 3; inst_channel++) {
       radio.SetRFChannel(inst_channel);
-      bbble.ChangeMessage("nRF24");
+      bbble.ChangeMessage("nRF24-Pi");
       bbble.Transmit();
       bcm2835_delay(200);
     }
