@@ -35,12 +35,12 @@ uint_fast8_t BBBLE::PopulateHeader(void){
   packet.pkt_pdu.pdu_header.tx_addr = 1;
   packet.pkt_pdu.pdu_header.length = total_len - 9; // no access_address, no header and no CRC
 
-  packet.pkt_pdu.adv_addr[0] = 0x11;
-  packet.pkt_pdu.adv_addr[1] = 0x22;
-  packet.pkt_pdu.adv_addr[2] = 0x33;
-  packet.pkt_pdu.adv_addr[3] = 0x44;
-  packet.pkt_pdu.adv_addr[4] = 0x55;
-  packet.pkt_pdu.adv_addr[5] = 0x66;
+  packet.pkt_pdu.adv_addr[0] = 0xE9;
+  packet.pkt_pdu.adv_addr[1] = 0x11;
+  packet.pkt_pdu.adv_addr[2] = 0x94;
+  packet.pkt_pdu.adv_addr[3] = 0xAA;
+  packet.pkt_pdu.adv_addr[4] = 0x98;
+  packet.pkt_pdu.adv_addr[5] = 0x72;
 
   packet.pkt_pdu.adv_data[0] = 0x02;
   packet.pkt_pdu.adv_data[1] = 0x01;
@@ -55,8 +55,10 @@ uint_fast8_t BBBLE::PopulatePayload(uint8_t *payload){
   uint8_t *pkt_ptr = (uint8_t *)&packet.pkt_pdu.adv_message[0];
   uint8_t *msg_ptr = (uint8_t *)&payload[0];
   uint_fast8_t pkt_len = 0, i;
-  uint8_t custom_data[5] = {4, 0xff, 0x01, 0x02, 0x03};
+  uint8_t custom_data[5] = {4, 0xff, 0xE0, 0x00, 0x00};
   uint8_t *cdata_ptr = (uint8_t *)&custom_data[0];
+
+  custom_data[4] = rand();
 
   while(*msg_ptr != '\0'){
     pkt_len++;
@@ -73,7 +75,7 @@ uint_fast8_t BBBLE::PopulatePayload(uint8_t *payload){
   pkt_ptr = (uint8_t *)&packet.pkt_pdu.adv_message[0];
 
   cout << "Message:\t\"";
-  for(i = 0; i < packet_len; i++){
+  for(i = 0; i < packet_len - 5; i++){
     cout << *pkt_ptr++;
   }
   cout << "\"" << endl;

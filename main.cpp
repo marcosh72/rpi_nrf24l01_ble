@@ -3,6 +3,7 @@
 #include "bbble.h"
 #include "radio.h"
 #include "spi.h"
+#include "time.h"
 #include <bcm2835.h>
 
 using namespace std;
@@ -12,6 +13,7 @@ int main(void){
   Radio radio(&spi);
   BBBLE bbble(&radio);
   uint8_t inst_channel = 0;
+  srand(time(NULL));
 
   bbble.ChangeMessage("nRF24");
   bbble.Transmit();
