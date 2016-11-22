@@ -74,12 +74,12 @@ uint_fast8_t BBBLE::PopulatePayload(uint8_t *payload){
   total_len = sizeof(packet) - (sizeof(packet.pkt_pdu.adv_message) - pkt_len) + 3; // CRC
   pkt_ptr = (uint8_t *)&packet.pkt_pdu.adv_message[0];
 
-  cout << "Message:\t\"";
+  cout << endl << "Message:\t\"";
   for(i = 0; i < packet_len - 5; i++){
     cout << *pkt_ptr++;
   }
   cout << "\"" << endl;
-  cout << "Packet len:\t" << (int)packet_len << endl << endl;
+  cout << "Packet len:\t" << (int)packet_len << endl;
   pkt_ptr = (uint8_t *)&packet.pkt_pdu.adv_message[0];
 
   cout << "Message TX:\t";
