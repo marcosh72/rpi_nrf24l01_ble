@@ -66,6 +66,7 @@ private:
   uint8_t SwapBits(uint8_t b);
 public:
   BBBLE(Radio *radiodev);
+  uint_fast8_t Transmit(void);
   uint_fast8_t ChangeMessage(const char *message);
 };
 
